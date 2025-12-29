@@ -57,16 +57,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Create user document in Firestore
   const createUserDocument = async (user: User, name?: string): Promise<UserData> => {
-    const userData: UserData = {
-      uid: user.uid,
-      email: user.email,
-      displayName: name || user.displayName,
-      isAdmin: false, // Default to non-admin
-      createdAt: new Date(),
-    };
+    try {
+      const userData: UserData = {
+        uid: user.uid,
+        email: user.email,
+        displayName: name || user.displayName,
+        isAdmin: false, // Default to non-admin
+        createdAt: new Date(),
+      };
 
-    await setDoc(doc(db, 'users', user.uid), userData);
-    return userData;
+      console.log('Creating user document for:', user.uid);
+      await setDoc(doc(db, 'users', user.uid), userData);
+      console.log('User document created successfully:', user.uid);
+      return userData;
+    } catch (err) {
+      console.error('Error creating user document:', err);
+      throw err;
+    }
   };
 
   useEffect(() => {
@@ -74,12 +81,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(user);
 
       if (user) {
+        console.log('User logged in:', user.uid);
         let data = await fetchUserData(user.uid);
         if (!data) {
-          data = await createUserDocument(user);
+          console.log('User document not found, creating...');
+          try {
+            data = await createUserDocument(user);
+          } catch (err) {
+            console.error('Failed to create user document:', err);
+          }
+        } else {
+          console.log('User document found:', data);
         }
         setUserData(data);
       } else {
+        console.log('User logged out');
         setUserData(null);
       }
 
