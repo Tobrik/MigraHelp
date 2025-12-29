@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Миграция данных в Firestore</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 5px;
+    }
+    button:hover {
+      background: #2563eb;
+    }
+    button:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+    .success {
+      background: #10b981;
+    }
+    .success:hover {
+      background: #059669;
+    }
+    .log {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 15px;
+      border-radius: 6px;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 13px;
+      margin-top: 20px;
+    }
+    .log-entry {
+      margin: 5px 0;
+    }
+    .log-success {
+      color: #10b981;
+    }
+    .log-error {
+      color: #ef4444;
+    }
+    .log-info {
+      color: #60a5fa;
+    }
+    h1 {
+      color: #1e293b;
+    }
+    .warning {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔄 Миграция данных в Firestore</h1>
+
+    <div class="warning">
+      <strong>⚠️ Внимание:</strong> Эта страница загрузит все данные из локального файла в ваш Firestore. Запускайте только один раз!
+    </div>
+
+    <div>
+      <button id="migrateAll" onclick="migrateAll()">📦 Загрузить все данные</button>
+      <button onclick="migrateRestaurants()">🍽️ Рестораны (22)</button>
+      <button onclick="migrateHelpCenters()">🏢 Центры помощи (15)</button>
+      <button onclick="migrateGuides()">📖 Инструкции (4)</button>
+      <button onclick="migrateProcedures()">📋 Процедуры (5)</button>
+    </div>
+
+    <div id="log" class="log"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getFirestore, collection, doc, setDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+    // Firebase конфигурация
+    const firebaseConfig = {
+      apiKey: "AIzaSyDVwNKOdukNacgd4qTC40posOeHAjBthVw",
+      authDomain: "abzal123-8af04.firebaseapp.com",
+      projectId: "abzal123-8af04",
+      storageBucket: "abzal123-8af04.firebasestorage.app",
+      messagingSenderId: "252027588059",
+      appId: "1:252027588059:web:5163a5f643f05b7c07ebfe",
+      measurementId: "G-VDQWQJYVMB"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.db = db;
+    window.setDoc = setDoc;
+    window.doc = doc;
+    window.writeBatch = writeBatch;
+    window.collection = collection;
+
+    function log(message, type = 'info') {
+      const logDiv = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = `log-entry log-${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logDiv.appendChild(entry);
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+    window.log = log;
+
+    log('✅ Firebase инициализирован', 'success');
+    log('🔌 Подключение к Firestore...', 'info');
+  </script>
+
+  <script src="./data-export.js"></script>
+
+  <script>
+    async function migrateCollection(collectionName, data) {
+      log(`📤 Начинаю загрузку ${collectionName}...`, 'info');
+      const batch = writeBatch(db);
+
+      try {
+        data.forEach((item) => {
+          const docRef = doc(db, collectionName, item.id);
+          batch.set(docRef, item);
+        });
+
+        await batch.commit();
+        log(`✅ ${collectionName}: ${data.length} записей загружено`, 'success');
+        return true;
+      } catch (error) {
+        log(`❌ Ошибка загрузки ${collectionName}: ${error.message}`, 'error');
+        return false;
+      }
+    }
+
+    async function migrateRestaurants() {
+      await migrateCollection('restaurants', window.RESTAURANTS_DATA);
+    }
+
+    async function migrateHelpCenters() {
+      await migrateCollection('helpCenters', window.HELP_CENTERS_DATA);
+    }
+
+    async function migrateGuides() {
+      await migrateCollection('guides', window.GUIDES_DATA);
+    }
+
+    async function migrateProcedures() {
+      await migrateCollection('procedures', window.PROCEDURES_DATA);
+    }
+
+    async function migrateAll() {
+      const btn = document.getElementById('migrateAll');
+      btn.disabled = true;
+      btn.textContent = '⏳ Загрузка...';
+
+      log('🚀 Начинаю полную миграцию данных...', 'info');
+
+      await migrateRestaurants();
+      await migrateHelpCenters();
+      await migrateGuides();
+      await migrateProcedures();
+
+      log('🎉 Миграция завершена!', 'success');
+      btn.textContent = '✅ Завершено';
+      btn.className = 'success';
+    }
+
+    window.migrateRestaurants = migrateRestaurants;
+    window.migrateHelpCenters = migrateHelpCenters;
+    window.migrateGuides = migrateGuides;
+    window.migrateProcedures = migrateProcedures;
+    window.migrateAll = migrateAll;
+  </script>
+</body>
+</html>
