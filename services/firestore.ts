@@ -12,13 +12,14 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { Guide, HelpCenter, Restaurant, DocumentProcedure } from '../types';
+import { Guide, HelpCenter, Restaurant, Hotel, DocumentProcedure } from '../types';
 
 // Collection names
 const COLLECTIONS = {
   GUIDES: 'guides',
   HELP_CENTERS: 'helpCenters',
   RESTAURANTS: 'restaurants',
+  HOTELS: 'hotels',
   PROCEDURES: 'procedures',
   USERS: 'users',
   SETTINGS: 'settings',
@@ -141,6 +142,45 @@ export const deleteRestaurant = async (id: string): Promise<void> => {
   await deleteDoc(doc(db, COLLECTIONS.RESTAURANTS, id));
 };
 
+// ============ HOTELS ============
+export const getHotels = async (): Promise<Hotel[]> => {
+  try {
+    const querySnapshot = await getDocs(collection(db, COLLECTIONS.HOTELS));
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Hotel));
+  } catch (error) {
+    console.error('Error fetching hotels:', error);
+    return [];
+  }
+};
+
+export const getHotel = async (id: string): Promise<Hotel | null> => {
+  try {
+    const docRef = doc(db, COLLECTIONS.HOTELS, id);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() } as Hotel;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching hotel:', error);
+    return null;
+  }
+};
+
+export const addHotel = async (hotel: Omit<Hotel, 'id'>): Promise<string> => {
+  const docRef = await addDoc(collection(db, COLLECTIONS.HOTELS), hotel);
+  return docRef.id;
+};
+
+export const updateHotel = async (id: string, hotel: Partial<Hotel>): Promise<void> => {
+  const docRef = doc(db, COLLECTIONS.HOTELS, id);
+  await updateDoc(docRef, hotel);
+};
+
+export const deleteHotel = async (id: string): Promise<void> => {
+  await deleteDoc(doc(db, COLLECTIONS.HOTELS, id));
+};
+
 // ============ DOCUMENT PROCEDURES ============
 export const getProcedures = async (): Promise<DocumentProcedure[]> => {
   try {
@@ -208,6 +248,15 @@ export const seedRestaurants = async (restaurants: Restaurant[]): Promise<void> 
   await batch.commit();
 };
 
+export const seedHotels = async (hotels: Hotel[]): Promise<void> => {
+  const batch = writeBatch(db);
+  hotels.forEach((hotel) => {
+    const docRef = doc(db, COLLECTIONS.HOTELS, hotel.id);
+    batch.set(docRef, hotel);
+  });
+  await batch.commit();
+};
+
 export const seedProcedures = async (procedures: DocumentProcedure[]): Promise<void> => {
   const batch = writeBatch(db);
   procedures.forEach((procedure) => {
@@ -220,10 +269,11 @@ export const seedProcedures = async (procedures: DocumentProcedure[]): Promise<v
 // ============ STATISTICS ============
 export const getStatistics = async () => {
   try {
-    const [guides, helpCenters, restaurants, procedures, users] = await Promise.all([
+    const [guides, helpCenters, restaurants, hotels, procedures, users] = await Promise.all([
       getDocs(collection(db, COLLECTIONS.GUIDES)),
       getDocs(collection(db, COLLECTIONS.HELP_CENTERS)),
       getDocs(collection(db, COLLECTIONS.RESTAURANTS)),
+      getDocs(collection(db, COLLECTIONS.HOTELS)),
       getDocs(collection(db, COLLECTIONS.PROCEDURES)),
       getDocs(collection(db, COLLECTIONS.USERS)),
     ]);
@@ -234,6 +284,7 @@ export const getStatistics = async () => {
       guides: guides.size,
       helpCenters: helpCenters.size,
       restaurants: restaurants.size,
+      hotels: hotels.size,
       procedures: procedures.size,
       users: users.size,
       admins: adminCount,
@@ -244,6 +295,7 @@ export const getStatistics = async () => {
       guides: 0,
       helpCenters: 0,
       restaurants: 0,
+      hotels: 0,
       procedures: 0,
       users: 0,
       admins: 0,

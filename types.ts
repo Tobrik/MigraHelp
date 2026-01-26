@@ -55,6 +55,31 @@ export interface Restaurant {
   image?: string;
 }
 
+// Hotel types
+export interface HotelPrices {
+  KZT: number;
+  USD: number;
+  RUB: number;
+  UZS: number;
+  TJS: number;
+}
+
+export interface Hotel {
+  id: string;
+  name: string;
+  address: string;
+  type: string; // Гостиница, Хостел, Апартаменты
+  prices: HotelPrices; // Цена за ночь
+  budget: 'budget' | 'medium' | 'premium';
+  phone?: string;
+  website?: string;
+  lat: number;
+  lng: number;
+  rating?: number;
+  image?: string;
+  amenities?: string[]; // Wi-Fi, Завтрак, Парковка и т.д.
+}
+
 // Document procedures
 export interface DocumentProcedure {
   id: string;

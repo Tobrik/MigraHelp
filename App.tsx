@@ -6,6 +6,7 @@ import { Guides } from './components/Guides';
 import { Documents } from './components/Documents';
 import { Map } from './components/Map';
 import { Restaurants } from './components/Restaurants';
+import { Hotels } from './components/Hotels';
 import { DocumentProcedures } from './components/DocumentProcedures';
 import { Auth } from './components/Auth';
 import { Admin } from './components/Admin';
@@ -36,6 +37,7 @@ const AnimatedRoutes: React.FC = () => {
         <Route path="/documents" element={<PageWrapper><Documents /></PageWrapper>} />
         <Route path="/procedures" element={<PageWrapper><DocumentProcedures /></PageWrapper>} />
         <Route path="/restaurants" element={<PageWrapper><Restaurants /></PageWrapper>} />
+        <Route path="/hotels" element={<PageWrapper><Hotels /></PageWrapper>} />
         <Route path="/map" element={<PageWrapper><Map /></PageWrapper>} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/admin" element={<PageWrapper><Admin /></PageWrapper>} />

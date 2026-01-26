@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, FileText, Files, Map as MapIcon, UtensilsCrossed, ClipboardList, LogIn, LogOut, Shield, User } from 'lucide-react';
+import { Home, FileText, Files, Map as MapIcon, UtensilsCrossed, Hotel, ClipboardList, LogIn, LogOut, Shield, User } from 'lucide-react';
 import { ThemeToggle } from './ui/ThemeToggle';
 import { LanguageSelector } from './ui/LanguageSelector';
 import { useTheme } from '../hooks/useTheme';
@@ -8,14 +8,14 @@ import { useLanguage } from '../hooks/useLanguage';
 import { useAuth } from '../hooks/useAuth';
 
 const NAV_ITEMS_LABELS = {
-  ru: { home: 'Главная', guides: 'Инструкции', documents: 'Документы', procedures: 'Процедуры', restaurants: 'Рестораны', map: 'Карта', help: 'Нужна помощь?', emergency: 'Экстренный номер: 112', theme: 'Тема', language: 'Язык', login: 'Войти', logout: 'Выйти', admin: 'Админ-панель', profile: 'Профиль' },
-  kk: { home: 'Басты бет', guides: 'Нұсқаулықтар', documents: 'Құжаттар', procedures: 'Ресімдеу', restaurants: 'Мейманхана', map: 'Карта', help: 'Көмек керек пе?', emergency: 'Төтенше нөмірі: 112', theme: 'Тема', language: 'Тіл', login: 'Кіру', logout: 'Шығу', admin: 'Админ-панель', profile: 'Профиль' },
-  en: { home: 'Home', guides: 'Guides', documents: 'Documents', procedures: 'Procedures', restaurants: 'Restaurants', map: 'Map', help: 'Need help?', emergency: 'Emergency: 112', theme: 'Theme', language: 'Language', login: 'Login', logout: 'Logout', admin: 'Admin Panel', profile: 'Profile' },
-  uz: { home: 'Bosh sahifa', guides: "Ko'rsatmalar", documents: 'Hujjatlar', procedures: 'Rasmiylashtirish', restaurants: 'Restoran', map: 'Xarita', help: 'Yordam kerakmi?', emergency: 'Faqat: 112', theme: 'Mavzu', language: 'Til', login: 'Kirish', logout: 'Chiqish', admin: 'Admin panel', profile: 'Profil' },
-  tj: { home: 'Саҳифаи асосӣ', guides: 'Дастури', documents: 'Ҳуҷҷатҳо', procedures: 'Раҷистрирон', restaurants: 'Рестораҳо', map: 'Нақша', help: 'Кумак лозим?', emergency: 'Кумак: 112', theme: 'Мавзу', language: 'Забон', login: 'Воридшавӣ', logout: 'Баромадан', admin: 'Админ-панел', profile: 'Профил' },
-  zh: { home: '首页', guides: '指南', documents: '文件', procedures: '程序', restaurants: '餐厅', map: '地图', help: '需要帮助？', emergency: '紧急呼号：112', theme: '主题', language: '语言', login: '登录', logout: '退出', admin: '管理面板', profile: '个人资料' },
-  tr: { home: 'Anasayfa', guides: 'Kılavuzlar', documents: 'Belgeler', procedures: 'Prosedürler', restaurants: 'Restoranlar', map: 'Harita', help: 'Yardıma ihtiyacınız var mı?', emergency: 'Acil: 112', theme: 'Tema', language: 'Dil', login: 'Giriş', logout: 'Çıkış', admin: 'Admin Paneli', profile: 'Profil' },
-  ky: { home: 'Башталгычы бет', guides: 'Колдонмолор', documents: 'Документтер', procedures: 'Процедуралар', restaurants: 'Ресторандар', map: 'Карта', help: 'Жардам керекпи?', emergency: 'Шашылыш: 112', theme: 'Тема', language: 'Тил', login: 'Кирүү', logout: 'Чыгуу', admin: 'Админ панели', profile: 'Профиль' },
+  ru: { home: 'Главная', guides: 'Инструкции', documents: 'Документы', procedures: 'Процедуры', restaurants: 'Рестораны', hotels: 'Отели', map: 'Карта', help: 'Нужна помощь?', emergency: 'Экстренный номер: 112', theme: 'Тема', language: 'Язык', login: 'Войти', logout: 'Выйти', admin: 'Админ-панель', profile: 'Профиль' },
+  kk: { home: 'Басты бет', guides: 'Нұсқаулықтар', documents: 'Құжаттар', procedures: 'Ресімдеу', restaurants: 'Мейманхана', hotels: 'Қонақ үйлер', map: 'Карта', help: 'Көмек керек пе?', emergency: 'Төтенше нөмірі: 112', theme: 'Тема', language: 'Тіл', login: 'Кіру', logout: 'Шығу', admin: 'Админ-панель', profile: 'Профиль' },
+  en: { home: 'Home', guides: 'Guides', documents: 'Documents', procedures: 'Procedures', restaurants: 'Restaurants', hotels: 'Hotels', map: 'Map', help: 'Need help?', emergency: 'Emergency: 112', theme: 'Theme', language: 'Language', login: 'Login', logout: 'Logout', admin: 'Admin Panel', profile: 'Profile' },
+  uz: { home: 'Bosh sahifa', guides: "Ko'rsatmalar", documents: 'Hujjatlar', procedures: 'Rasmiylashtirish', restaurants: 'Restoran', hotels: 'Mehmonxonalar', map: 'Xarita', help: 'Yordam kerakmi?', emergency: 'Faqat: 112', theme: 'Mavzu', language: 'Til', login: 'Kirish', logout: 'Chiqish', admin: 'Admin panel', profile: 'Profil' },
+  tj: { home: 'Саҳифаи асосӣ', guides: 'Дастури', documents: 'Ҳуҷҷатҳо', procedures: 'Раҷистрирон', restaurants: 'Рестораҳо', hotels: 'Меҳмонхонаҳо', map: 'Нақша', help: 'Кумак лозим?', emergency: 'Кумак: 112', theme: 'Мавзу', language: 'Забон', login: 'Воридшавӣ', logout: 'Баромадан', admin: 'Админ-панел', profile: 'Профил' },
+  zh: { home: '首页', guides: '指南', documents: '文件', procedures: '程序', restaurants: '餐厅', hotels: '酒店', map: '地图', help: '需要帮助？', emergency: '紧急呼号：112', theme: '主题', language: '语言', login: '登录', logout: '退出', admin: '管理面板', profile: '个人资料' },
+  tr: { home: 'Anasayfa', guides: 'Kılavuzlar', documents: 'Belgeler', procedures: 'Prosedürler', restaurants: 'Restoranlar', hotels: 'Oteller', map: 'Harita', help: 'Yardıma ihtiyacınız var mı?', emergency: 'Acil: 112', theme: 'Tema', language: 'Dil', login: 'Giriş', logout: 'Çıkış', admin: 'Admin Paneli', profile: 'Profil' },
+  ky: { home: 'Башталгычы бет', guides: 'Колдонмолор', documents: 'Документтер', procedures: 'Процедуралар', restaurants: 'Ресторандар', hotels: 'Мейманканалар', map: 'Карта', help: 'Жардам керекпи?', emergency: 'Шашылыш: 112', theme: 'Тема', language: 'Тил', login: 'Кирүү', logout: 'Чыгуу', admin: 'Админ панели', profile: 'Профиль' },
 };
 
 const getNavItems = (labels: typeof NAV_ITEMS_LABELS['ru']) => [
@@ -24,6 +24,7 @@ const getNavItems = (labels: typeof NAV_ITEMS_LABELS['ru']) => [
   { path: '/documents', label: labels.documents, icon: Files },
   { path: '/procedures', label: labels.procedures, icon: ClipboardList },
   { path: '/restaurants', label: labels.restaurants, icon: UtensilsCrossed },
+  { path: '/hotels', label: labels.hotels, icon: Hotel },
   { path: '/map', label: labels.map, icon: MapIcon },
 ];
 

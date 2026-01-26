@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card } from './ui/Card';
-import { CheckCircle2, AlertTriangle, Clock, ArrowRight } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Hotel as HotelIcon, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { DocumentItem } from '../types';
 
@@ -109,19 +109,19 @@ export const Dashboard: React.FC = () => {
         </motion.div>
 
         {/* Quick Actions / Bento Items */}
-        <motion.div 
+        <motion.div
            initial={{ opacity: 0, y: 20 }}
            animate={{ opacity: 1, y: 0 }}
            transition={{ duration: 0.4, delay: 0.2 }}
            className="md:col-span-1"
         >
-          <Link to="/phrases">
+          <Link to="/hotels">
             <Card className="h-40 p-6 flex flex-col justify-center items-center text-center hover:scale-[1.02] cursor-pointer group dark:bg-slate-900">
-              <div className="p-3 bg-teal-50 text-teal-600 dark:bg-teal-900 dark:text-teal-400 rounded-full mb-3 group-hover:bg-teal-100 dark:group-hover:bg-teal-800 transition-colors">
-                <Clock size={24} />
+              <div className="p-3 bg-purple-50 text-purple-600 dark:bg-purple-900 dark:text-purple-400 rounded-full mb-3 group-hover:bg-purple-100 dark:group-hover:bg-purple-800 transition-colors">
+                <HotelIcon size={24} />
               </div>
-              <h4 className="font-semibold text-slate-700 dark:text-slate-200">Быстрые фразы</h4>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Для экстренных случаев</p>
+              <h4 className="font-semibold text-slate-700 dark:text-slate-200">Отели</h4>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Недорогое жилье в городе</p>
             </Card>
           </Link>
         </motion.div>
