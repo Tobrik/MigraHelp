@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card } from './ui/Card';
 import {
-  Users, MapPin, FileText, Utensils, Settings, Shield,
+  Users, MapPin, FileText, Utensils, Hotel as HotelIcon, Settings, Shield,
   Plus, Trash2, Edit2, Save, X, Loader2, AlertCircle,
   Database, Upload, Check, ChevronDown, ChevronUp, ClipboardList
 } from 'lucide-react';
@@ -12,16 +12,17 @@ import { useNavigate } from 'react-router-dom';
 import { collection, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import {
-  getGuides, getHelpCenters, getRestaurants, getProcedures,
-  seedGuides, seedHelpCenters, seedRestaurants, seedProcedures,
+  getGuides, getHelpCenters, getRestaurants, getHotels, getProcedures,
+  seedGuides, seedHelpCenters, seedRestaurants, seedHotels, seedProcedures,
   addRestaurant, updateRestaurant, deleteRestaurant,
+  addHotel, updateHotel, deleteHotel,
   addHelpCenter, updateHelpCenter, deleteHelpCenter,
   addGuide, updateGuide, deleteGuide,
   addProcedure, updateProcedure, deleteProcedure,
   getStatistics,
 } from '../services/firestore';
-import { GUIDES, HELP_CENTERS, RESTAURANTS, DOCUMENT_PROCEDURES } from '../data';
-import { Restaurant, HelpCenter, Guide, DocumentProcedure } from '../types';
+import { GUIDES, HELP_CENTERS, RESTAURANTS, HOTELS, DOCUMENT_PROCEDURES } from '../data';
+import { Restaurant, Hotel, HelpCenter, Guide, DocumentProcedure } from '../types';
 
 const translations = {
   ru: {
@@ -29,6 +30,7 @@ const translations = {
     subtitle: 'Управление приложением',
     users: 'Пользователи',
     restaurants: 'Рестораны',
+    hotels: 'Отели',
     helpCenters: 'Центры помощи',
     procedures: 'Процедуры',
     guides: 'Инструкции',
@@ -56,6 +58,7 @@ const translations = {
     migrateData: 'Миграция данных',
     migrateDescription: 'Загрузить начальные данные из приложения в Firestore',
     migrateRestaurants: 'Загрузить рестораны',
+    migrateHotels: 'Загрузить отели',
     migrateHelpCenters: 'Загрузить центры помощи',
     migrateGuides: 'Загрузить инструкции',
     migrateProcedures: 'Загрузить процедуры',
@@ -75,12 +78,14 @@ const translations = {
     icon: 'Иконка',
     processingTime: 'Время обработки',
     noData: 'Нет данных. Загрузите данные во вкладке "Данные"',
+    amenities: 'Удобства',
   },
   en: {
     title: 'Admin Panel',
     subtitle: 'Application management',
     users: 'Users',
     restaurants: 'Restaurants',
+    hotels: 'Hotels',
     helpCenters: 'Help Centers',
     procedures: 'Procedures',
     guides: 'Guides',
@@ -108,6 +113,7 @@ const translations = {
     migrateData: 'Data Migration',
     migrateDescription: 'Upload initial data from application to Firestore',
     migrateRestaurants: 'Upload restaurants',
+    migrateHotels: 'Upload hotels',
     migrateHelpCenters: 'Upload help centers',
     migrateGuides: 'Upload guides',
     migrateProcedures: 'Upload procedures',
@@ -127,6 +133,7 @@ const translations = {
     icon: 'Icon',
     processingTime: 'Processing Time',
     noData: 'No data. Upload data in the "Data" tab',
+    amenities: 'Amenities',
   },
 };
 
@@ -138,7 +145,7 @@ interface UserRecord {
   createdAt: any;
 }
 
-type TabType = 'stats' | 'users' | 'data' | 'restaurants' | 'helpCenters' | 'guides' | 'procedures';
+type TabType = 'stats' | 'users' | 'data' | 'restaurants' | 'hotels' | 'helpCenters' | 'guides' | 'procedures';
 
 export const Admin: React.FC = () => {
   const { language } = useLanguage();
@@ -148,14 +155,16 @@ export const Admin: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('stats');
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [hotels, setHotels] = useState<Hotel[]>([]);
   const [helpCenters, setHelpCenters] = useState<HelpCenter[]>([]);
   const [guides, setGuides] = useState<Guide[]>([]);
   const [procedures, setProcedures] = useState<DocumentProcedure[]>([]);
-  const [stats, setStats] = useState({ users: 0, admins: 0, restaurants: 0, helpCenters: 0, guides: 0, procedures: 0 });
+  const [stats, setStats] = useState({ users: 0, admins: 0, restaurants: 0, hotels: 0, helpCenters: 0, guides: 0, procedures: 0 });
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [migrationStatus, setMigrationStatus] = useState<Record<string, 'idle' | 'loading' | 'success' | 'error'>>({
     restaurants: 'idle',
+    hotels: 'idle',
     helpCenters: 'idle',
     guides: 'idle',
     procedures: 'idle',
@@ -176,9 +185,10 @@ export const Admin: React.FC = () => {
   const loadAllData = async () => {
     setLoading(true);
     try {
-      const [usersData, restaurantsData, helpCentersData, guidesData, proceduresData] = await Promise.all([
+      const [usersData, restaurantsData, hotelsData, helpCentersData, guidesData, proceduresData] = await Promise.all([
         getDocs(collection(db, 'users')),
         getRestaurants(),
+        getHotels(),
         getHelpCenters(),
         getGuides(),
         getProcedures(),
@@ -187,6 +197,7 @@ export const Admin: React.FC = () => {
       const usersArray = usersData.docs.map(doc => ({ ...doc.data(), uid: doc.id })) as UserRecord[];
       setUsers(usersArray);
       setRestaurants(restaurantsData);
+      setHotels(hotelsData);
       setHelpCenters(helpCentersData);
       setGuides(guidesData);
       setProcedures(proceduresData);
@@ -195,6 +206,7 @@ export const Admin: React.FC = () => {
         users: usersArray.length,
         admins: usersArray.filter(u => u.isAdmin).length,
         restaurants: restaurantsData.length,
+        hotels: hotelsData.length,
         helpCenters: helpCentersData.length,
         guides: guidesData.length,
         procedures: proceduresData.length,
@@ -206,7 +218,7 @@ export const Admin: React.FC = () => {
     }
   };
 
-  const handleMigrate = async (type: 'restaurants' | 'helpCenters' | 'guides' | 'procedures' | 'all') => {
+  const handleMigrate = async (type: 'restaurants' | 'hotels' | 'helpCenters' | 'guides' | 'procedures' | 'all') => {
     const migrate = async (key: string, fn: () => Promise<void>) => {
       setMigrationStatus(prev => ({ ...prev, [key]: 'loading' }));
       try {
@@ -220,11 +232,14 @@ export const Admin: React.FC = () => {
 
     if (type === 'all') {
       await migrate('restaurants', () => seedRestaurants(RESTAURANTS));
+      await migrate('hotels', () => seedHotels(HOTELS));
       await migrate('helpCenters', () => seedHelpCenters(HELP_CENTERS));
       await migrate('guides', () => seedGuides(GUIDES));
       await migrate('procedures', () => seedProcedures(DOCUMENT_PROCEDURES));
     } else if (type === 'restaurants') {
       await migrate('restaurants', () => seedRestaurants(RESTAURANTS));
+    } else if (type === 'hotels') {
+      await migrate('hotels', () => seedHotels(HOTELS));
     } else if (type === 'helpCenters') {
       await migrate('helpCenters', () => seedHelpCenters(HELP_CENTERS));
     } else if (type === 'guides') {
@@ -268,6 +283,9 @@ export const Admin: React.FC = () => {
       if (type === 'restaurant') {
         await deleteRestaurant(id);
         setRestaurants(restaurants.filter(r => r.id !== id));
+      } else if (type === 'hotel') {
+        await deleteHotel(id);
+        setHotels(hotels.filter(h => h.id !== id));
       } else if (type === 'helpCenter') {
         await deleteHelpCenter(id);
         setHelpCenters(helpCenters.filter(h => h.id !== id));
@@ -299,6 +317,9 @@ export const Admin: React.FC = () => {
       if (type === 'restaurant') {
         await updateRestaurant(editForm.id, editForm);
         setRestaurants(restaurants.map(r => r.id === editForm.id ? editForm : r));
+      } else if (type === 'hotel') {
+        await updateHotel(editForm.id, editForm);
+        setHotels(hotels.map(h => h.id === editForm.id ? editForm : h));
       } else if (type === 'helpCenter') {
         await updateHelpCenter(editForm.id, editForm);
         setHelpCenters(helpCenters.map(h => h.id === editForm.id ? editForm : h));
@@ -350,12 +371,13 @@ export const Admin: React.FC = () => {
     { id: 'data', icon: <Database size={18} />, label: t.data },
     { id: 'users', icon: <Users size={18} />, label: t.users },
     { id: 'restaurants', icon: <Utensils size={18} />, label: t.restaurants },
+    { id: 'hotels', icon: <HotelIcon size={18} />, label: t.hotels },
     { id: 'helpCenters', icon: <MapPin size={18} />, label: t.helpCenters },
     { id: 'guides', icon: <FileText size={18} />, label: t.guides },
     { id: 'procedures', icon: <ClipboardList size={18} />, label: t.procedures },
   ];
 
-  const MigrationButton = ({ type, label, count }: { type: 'restaurants' | 'helpCenters' | 'guides' | 'procedures'; label: string; count: number }) => (
+  const MigrationButton = ({ type, label, count }: { type: 'restaurants' | 'hotels' | 'helpCenters' | 'guides' | 'procedures'; label: string; count: number }) => (
     <button
       onClick={() => handleMigrate(type)}
       disabled={migrationStatus[type] === 'loading'}
@@ -426,6 +448,7 @@ export const Admin: React.FC = () => {
             { icon: Users, value: stats.users, label: t.totalUsers, color: 'blue' },
             { icon: Shield, value: stats.admins, label: t.admins, color: 'purple' },
             { icon: Utensils, value: stats.restaurants, label: t.restaurants, color: 'green' },
+            { icon: HotelIcon, value: stats.hotels, label: t.hotels, color: 'indigo' },
             { icon: MapPin, value: stats.helpCenters, label: t.helpCenters, color: 'orange' },
             { icon: FileText, value: stats.guides, label: t.guides, color: 'cyan' },
             { icon: ClipboardList, value: stats.procedures, label: t.procedures, color: 'pink' },
@@ -454,6 +477,7 @@ export const Admin: React.FC = () => {
 
             <div className="space-y-3">
               <MigrationButton type="restaurants" label={t.migrateRestaurants} count={RESTAURANTS.length} />
+              <MigrationButton type="hotels" label={t.migrateHotels} count={HOTELS.length} />
               <MigrationButton type="helpCenters" label={t.migrateHelpCenters} count={HELP_CENTERS.length} />
               <MigrationButton type="guides" label={t.migrateGuides} count={GUIDES.length} />
               <MigrationButton type="procedures" label={t.migrateProcedures} count={DOCUMENT_PROCEDURES.length} />
@@ -577,6 +601,55 @@ export const Admin: React.FC = () => {
                           <div className="flex items-center justify-end gap-2">
                             <button onClick={() => openEditModal('restaurant', r)} className="p-1 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded"><Edit2 size={16} /></button>
                             <button onClick={() => handleDeleteItem('restaurant', r.id)} disabled={actionLoading === r.id} className="p-1 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded"><Trash2 size={16} /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Hotels Tab */}
+      {activeTab === 'hotels' && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <Card className="overflow-hidden">
+            {hotels.length === 0 ? (
+              <div className="p-8 text-center text-slate-500 dark:text-slate-400">{t.noData}</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-slate-50 dark:bg-slate-800">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase">{t.name}</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase">{t.address}</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase">{t.type}</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase">{t.budget}</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase">{t.rating}</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase">{t.actions}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                    {hotels.map((h) => (
+                      <tr key={h.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                        <td className="px-4 py-3 text-sm font-medium text-slate-900 dark:text-slate-100">{h.name}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{h.address}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{h.type}</td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            h.budget === 'budget' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                            h.budget === 'medium' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                            'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                          }`}>{h.budget}</span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{h.rating || '-'}</td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button onClick={() => openEditModal('hotel', h)} className="p-1 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded"><Edit2 size={16} /></button>
+                            <button onClick={() => handleDeleteItem('hotel', h.id)} disabled={actionLoading === h.id} className="p-1 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded"><Trash2 size={16} /></button>
                           </div>
                         </td>
                       </tr>
