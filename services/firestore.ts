@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { Guide, HelpCenter, Restaurant, Hotel, DocumentProcedure } from '../types';
+import { HOTELS, RESTAURANTS, HELP_CENTERS, DOCUMENT_PROCEDURES, GUIDES } from '../data';
 
 // Collection names
 const COLLECTIONS = {
@@ -29,10 +30,11 @@ const COLLECTIONS = {
 export const getGuides = async (): Promise<Guide[]> => {
   try {
     const querySnapshot = await getDocs(collection(db, COLLECTIONS.GUIDES));
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Guide));
+    const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Guide));
+    return data.length > 0 ? data : GUIDES;
   } catch (error) {
     console.error('Error fetching guides:', error);
-    return [];
+    return GUIDES;
   }
 };
 
@@ -68,10 +70,11 @@ export const deleteGuide = async (id: string): Promise<void> => {
 export const getHelpCenters = async (): Promise<HelpCenter[]> => {
   try {
     const querySnapshot = await getDocs(collection(db, COLLECTIONS.HELP_CENTERS));
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as HelpCenter));
+    const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as HelpCenter));
+    return data.length > 0 ? data : HELP_CENTERS;
   } catch (error) {
     console.error('Error fetching help centers:', error);
-    return [];
+    return HELP_CENTERS;
   }
 };
 
@@ -107,10 +110,11 @@ export const deleteHelpCenter = async (id: string): Promise<void> => {
 export const getRestaurants = async (): Promise<Restaurant[]> => {
   try {
     const querySnapshot = await getDocs(collection(db, COLLECTIONS.RESTAURANTS));
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Restaurant));
+    const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Restaurant));
+    return data.length > 0 ? data : RESTAURANTS;
   } catch (error) {
     console.error('Error fetching restaurants:', error);
-    return [];
+    return RESTAURANTS;
   }
 };
 
@@ -146,10 +150,11 @@ export const deleteRestaurant = async (id: string): Promise<void> => {
 export const getHotels = async (): Promise<Hotel[]> => {
   try {
     const querySnapshot = await getDocs(collection(db, COLLECTIONS.HOTELS));
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Hotel));
+    const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Hotel));
+    return data.length > 0 ? data : HOTELS;
   } catch (error) {
     console.error('Error fetching hotels:', error);
-    return [];
+    return HOTELS;
   }
 };
 
@@ -185,10 +190,11 @@ export const deleteHotel = async (id: string): Promise<void> => {
 export const getProcedures = async (): Promise<DocumentProcedure[]> => {
   try {
     const querySnapshot = await getDocs(collection(db, COLLECTIONS.PROCEDURES));
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DocumentProcedure));
+    const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DocumentProcedure));
+    return data.length > 0 ? data : DOCUMENT_PROCEDURES;
   } catch (error) {
     console.error('Error fetching procedures:', error);
-    return [];
+    return DOCUMENT_PROCEDURES;
   }
 };
 

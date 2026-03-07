@@ -10,6 +10,7 @@ import { Hotels } from './components/Hotels';
 import { DocumentProcedures } from './components/DocumentProcedures';
 import { Auth } from './components/Auth';
 import { Admin } from './components/Admin';
+import { Chatbot } from './components/Chatbot';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const PageWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -56,6 +57,7 @@ const AppContent: React.FC = () => {
       <main className={`flex-1 relative ${!isAuthPage ? 'md:ml-64' : ''}`}>
         <AnimatedRoutes />
       </main>
+      {!isAuthPage && <Chatbot />}
     </div>
   );
 };
